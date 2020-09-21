@@ -1,0 +1,25 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "Cartography",
+        "repositoryURL": "https://github.com/robb/Cartography",
+        "state": {
+          "branch": "master",
+          "revision": "f43d3de6362946c56146c9ec2b549d2ab25bd9a0",
+          "version": null
+        }
+      },
+      {
+        "package": "PTDList",
+        "repositoryURL": "https://github.com/Patrik-svobodik/PTDList",
+        "state": {
+          "branch": "main",
+          "revision": "61eb7c0f647ec7ba9d84c5f318f388a39b7a9da2",
+          "version": null
+        }
+      }
+    ]
+  },
+  "version": 1
+}
