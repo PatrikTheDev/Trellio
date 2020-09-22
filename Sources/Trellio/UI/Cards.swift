@@ -14,11 +14,11 @@ public final class TRUICardCell: UICollectionViewListCell, PTDListCell {
     }
 }
 
-public class TRUICardListController: PTDListController<TRUICardCell> {
+open class TRUICardListController: PTDListController<TRUICardCell> {
     
     private var subscriptions = Set<AnyCancellable>()
     
-    public var mode: Mode? {
+    open var mode: Mode? {
         didSet {
             getCards()
             updateTitle()
@@ -28,7 +28,7 @@ public class TRUICardListController: PTDListController<TRUICardCell> {
     private var trList: TRList?
     private var trBoard: TRBoard?
     
-    public override func viewDidLoad() {
+    override open func viewDidLoad() {
         super.viewDidLoad()
         updateTitle()
         #if !os(tvOS)

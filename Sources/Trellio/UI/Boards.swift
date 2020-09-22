@@ -14,8 +14,8 @@ public final class TRUIBoardCell: UICollectionViewListCell, PTDListCell {
     }
 }
 
-public class TRUIBoardListController: PTDListController<TRUIBoardCell> {
-    override public func viewDidLoad() {
+open class TRUIBoardListController: PTDListController<TRUIBoardCell> {
+    override open func viewDidLoad() {
         super.viewDidLoad()
         action = { [weak self] context in
             let list = TRUIListsController()

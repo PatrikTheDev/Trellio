@@ -14,11 +14,11 @@ public final class TRUIListCell: UICollectionViewListCell, PTDListCell {
     }
 }
 
-public class TRUIListsController: PTDListController<TRUIListCell> {
+open class TRUIListsController: PTDListController<TRUIListCell> {
     
     private var subscriptions = Set<AnyCancellable>()
     
-    public var mode: Mode? {
+    open var mode: Mode? {
         didSet {
             getLists()
         }
@@ -48,7 +48,7 @@ public class TRUIListsController: PTDListController<TRUIListCell> {
             .store(in: &subscriptions)
     }
     
-    override public func viewDidLoad() {
+    override open func viewDidLoad() {
         super.viewDidLoad()
         action = { [weak self] context in
             let list = TRUICardListController()
