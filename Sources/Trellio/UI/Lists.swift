@@ -60,6 +60,11 @@ open class TRUIListsController: PTDListController<TRUIListCell> {
         #endif
     }
     
+    override open func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        getLists()
+    }
+    
     public enum Mode {
         case board(TRBoard), id(String)
     }

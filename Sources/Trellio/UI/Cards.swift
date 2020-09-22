@@ -69,6 +69,10 @@ open class TRUICardListController: PTDListController<TRUICardCell> {
             }
             .store(in: &subscriptions)
     }
+    override open func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        getCards()
+    }
     
     public enum Mode {
         case boardID(String), board(TRBoard)
