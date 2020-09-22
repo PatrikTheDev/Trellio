@@ -31,7 +31,9 @@ public final class TRUICardListController: PTDListController<TRUICardCell> {
     public override func viewDidLoad() {
         super.viewDidLoad()
         updateTitle()
+        #if !os(tvOS)
         navigationController?.navigationBar.prefersLargeTitles = true
+        #endif
     }
     
     private func getCards() {
@@ -40,14 +42,20 @@ public final class TRUICardListController: PTDListController<TRUICardCell> {
         switch mode {
         case let .boardID(board):
             publisher = Trellio.getCards(boardId: board).eraseToAnyPublisher()
+            trList = nil
+            trBoard = nil
         case let .listID(list):
             publisher = Trellio.getCards(listId: list).eraseToAnyPublisher()
+            trList = nil
+            trBoard = nil
         case let .board(board):
             publisher = board.getCards().eraseToAnyPublisher()
             trBoard = board
+            trList = nil
         case let .list(list):
             publisher = list.getCards().eraseToAnyPublisher()
             trList = list
+            trBoard = nil
         }
         
         publisher
@@ -63,7 +71,8 @@ public final class TRUICardListController: PTDListController<TRUICardCell> {
     }
     
     public enum Mode {
-        case boardID(String), board(TRBoard), listID(String), list(TRList)
+        case boardID(String), board(TRBoard)
+        case listID(String), list(TRList)
     }
     
     private func updateTitle() {

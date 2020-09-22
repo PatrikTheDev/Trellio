@@ -3,10 +3,10 @@
     "pins": [
       {
         "package": "Cartography",
-        "repositoryURL": "https://github.com/robb/Cartography",
+        "repositoryURL": "https://github.com/Patrik-svobodik/Cartography",
         "state": {
-          "branch": "master",
-          "revision": "f43d3de6362946c56146c9ec2b549d2ab25bd9a0",
+          "branch": "tvOS-fix",
+          "revision": "b58e04fde9a8df22d13cbbd3f122df735bd5898e",
           "version": null
         }
       },
@@ -15,7 +15,7 @@
         "repositoryURL": "https://github.com/Patrik-svobodik/PTDList",
         "state": {
           "branch": "main",
-          "revision": "61eb7c0f647ec7ba9d84c5f318f388a39b7a9da2",
+          "revision": "41a87bb2852813dc739d588c3a8df67829c1d3f2",
           "version": null
         }
       }

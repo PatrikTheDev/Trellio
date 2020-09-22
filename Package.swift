@@ -7,15 +7,13 @@ let package = Package(
     name: "Trellio",
     platforms: [
         .iOS(.v14),
+        .tvOS(.v14),
     ],
     products: [
-        // Products define the executables and libraries a package produces, and make them visible to other packages.
         .library(name: "Trellio", targets: ["Trellio"]),
     ],
     dependencies: [
-        // Dependencies declare other packages that this package depends on.
-        // .package(url: /* package url */, from: "1.0.0"),
-        .package(url: "https://github.com/robb/Cartography", .branch("master")),
+        .package(url: "https://github.com/Patrik-svobodik/Cartography", .branch("tvOS-fix")),
         .package(url: "https://github.com/Patrik-svobodik/PTDList", .branch("main")),
     ],
     targets: [

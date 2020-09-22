@@ -14,7 +14,7 @@ final class TrellioTests: XCTestCase {
         Trellio.getBoards()
             .tryCompactMap(\.first)
             .catch { err -> Empty<TRBoard, Never> in
-                XCTFail(err.localizedDescription)
+                XCTFail("\(err)")
                 return Empty<TRBoard, Never>()
             }
             .flatMap { $0.getCards() }
@@ -42,7 +42,7 @@ final class TrellioTests: XCTestCase {
                 return try XCTUnwrap(boards.first)
             }
             .catch { err -> Empty<TRBoard, Never> in
-                XCTFail(err.localizedDescription)
+                XCTFail("\(err)")
                 return Empty<TRBoard, Never>()
             }
             .flatMap { $0.getLists() }
@@ -75,12 +75,12 @@ final class TrellioTests: XCTestCase {
                 return try XCTUnwrap(boards.first)
             }
             .catch { err -> Empty<TRBoard, Never> in
-                XCTFail(err.localizedDescription)
+                XCTFail("\(err)")
                 return .init()
             }
             .flatMap { $0.getLists() }
             .catch { err -> Empty<[TRList], Never> in
-                XCTFail(err.localizedDescription)
+                XCTFail("\(err)")
                 return .init()
             }
             .sink { lists in
@@ -97,7 +97,6 @@ final class TrellioTests: XCTestCase {
         Trellio.token = Secrets.token
         
         let expectation = XCTestExpectation()
-        
         let listVC = TRUIBoardListController()
         
         Trellio.getBoards()
@@ -108,7 +107,7 @@ final class TrellioTests: XCTestCase {
             .receive(on: RunLoop.main)
             .sink { boards in
                 listVC.items = boards
-                XCTAssertTrue(listVC.list.dataSource?.collectionView(listVC.list, numberOfItemsInSection: 0) ?? 0 > 0)
+                XCTAssertTrue(listVC.list.dataSource!.collectionView(listVC.list, numberOfItemsInSection: 0) > 0)
                 var success = false
                 listVC.action = { _ in success = true }
                 listVC.list.delegate?.collectionView?(listVC.list, didSelectItemAt: IndexPath(row: 0, section: 0))

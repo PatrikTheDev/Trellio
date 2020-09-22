@@ -55,7 +55,9 @@ public final class TRUIListsController: PTDListController<TRUIListCell> {
             list.mode = .list(context.item)
             self?.show(list, sender: self)
         }
+        #if !os(tvOS)
         navigationController?.navigationBar.prefersLargeTitles = true
+        #endif
     }
     
     public enum Mode {

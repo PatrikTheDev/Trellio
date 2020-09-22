@@ -2,130 +2,57 @@ import Foundation
 import Combine
 
 public enum Trellio {
-    public static var token = "token"
-    public static var key = "key"
+    public static var token = String()
+    public static var key = String()
     
-    private static var subscriptions = Set<AnyCancellable>()
-    
-    public static func getBoards() -> Future<[TRBoard], TRError> {
-        Future<[TRBoard], TRError> { promise in
-            if token == "token" || key == "key" {
-                return promise(.failure(.noTokenOrAPIKey))
-            }
-            guard let url = URL(string: "https://api.trello.com/1/members/me/boards?key=\(key)&token=\(token)") else {
-                return promise(.failure(.unableToConstructURL))
-            }
-            URLSession.shared.dataTaskPublisher(for: url)
-                .tryMap { (data, response) -> Data in
-                    guard let httpResponse = response as? HTTPURLResponse, 200...299 ~= httpResponse.statusCode else {
-                        throw TRError.wrongResponse
-                    }
-                    return data
-                }
-                .decode(type: [TRBoard].self, decoder: JSONDecoder())
-                .catch { err -> Empty<[TRBoard], Never> in
-                    promise(.failure(.unknownError(err)))
-                    return .init()
-                }
-                .sink { promise(.success($0)) }
-                .store(in: &subscriptions)
-        }
-    }
-    public static func getLists(boardId id: String) -> Future<[TRList], TRError> {
-        Future<[TRList], TRError> { promise in
-            if token == "token" || key == "key" {
-                return promise(.failure(.noTokenOrAPIKey))
-            }
-            (get(url: "https://api.trello.com/1/boards/\(id)/lists?key=\(key)&token=\(token)") as AnyPublisher<[TRList], TRError>)
-                .catch { err -> Empty<[TRList], Never> in
-                    promise(.failure(.unknownError(err)))
-                    return .init()
-                }
-                .sink { promise(.success($0)) }
-                .store(in: &subscriptions)
-        }
-    }
-    public static func getCards(boardId id: String) -> Future<[TRCard], TRError> {
-        Future<[TRCard], TRError> { promise in
-            if token == "token" || key == "key" {
-                return promise(.failure(.noTokenOrAPIKey))
-            }
-            
-            (get(url: "https://api.trello.com/1/boards/\(id)/cards?key=\(key)&token=\(token)") as AnyPublisher<[TRCard], TRError>)
-                .catch { err -> Empty<[TRCard], Never> in
-                    promise(.failure(.unknownError(err)))
-                    return .init()
-                }
-                .sink { promise(.success($0)) }
-                .store(in: &subscriptions)
-        }
-    }
-    public static func getCards(listId id: String) -> Future<[TRCard], TRError> {
-        Future<[TRCard], TRError> { promise in
-            if token == "token" || key == "key" {
-                return promise(.failure(.noTokenOrAPIKey))
-            }
-            
-            (get(url: "https://api.trello.com/1/lists/\(id)/cards?key=\(key)&token=\(token)") as AnyPublisher<[TRCard], TRError>)
-                .catch { err -> Empty<[TRCard], Never> in
-                    promise(.failure(.unknownError(err)))
-                    return .init()
-                }
-                .sink { promise(.success($0)) }
-                .store(in: &subscriptions)
-        }
+    public static func getBoards() -> AnyPublisher<[TRBoard], TRError> {
+        checkToken(get(TrelloAPI.Boards.get()))
     }
     
-    private static func get<T: Decodable>(url: String) -> AnyPublisher<T, TRError> {
-        Future<T, TRError> { promise in
-            guard let url = URL(string: url) else {
-                return promise(.failure(.unableToConstructURL))
-            }
-            URLSession.shared.dataTaskPublisher(for: url)
-                .tryMap { (data, response) -> Data in
-                    guard let httpResponse = response as? HTTPURLResponse, 200...299 ~= httpResponse.statusCode else {
-                        throw TRError.wrongResponse
-                    }
-                    return data
-                }
-                .decode(type: T.self, decoder: JSONDecoder())
-                .catch { err -> Empty<T, Never> in
-                    promise(.failure(.unknownError(err)))
-                    return .init()
-                }
-                .sink { promise(.success($0)) }
-                .store(in: &subscriptions)
-        }.eraseToAnyPublisher()
+    public static func getLists(boardId id: String) -> AnyPublisher<[TRList], TRError> {
+        checkToken(get(TrelloAPI.Lists.get(boardId: id)))
     }
     
-    public static func getBoard(id: String) -> Future<TRBoard, TRError> {
-        Future<TRBoard, TRError> { promise in
-            if token == "token" || key == "key" {
-                return promise(.failure(.noTokenOrAPIKey))
-            }
-            
-            (get(url: "https://api.trello.com/1/boards/\(id)?key=\(key)&token=\(token)") as AnyPublisher<TRBoard, TRError>)
-                .catch { err -> Empty<TRBoard, Never> in
-                    promise(.failure(.unknownError(err)))
-                    return .init()
-                }
-                .sink { promise(.success($0)) }
-                .store(in: &subscriptions)
-        }
+    public static func getCards(boardId id: String) -> AnyPublisher<[TRCard], TRError> {
+        checkToken(get(TrelloAPI.Cards.get(boardId: id)))
     }
-    public static func getList(id: String) -> Future<TRList, TRError> {
-        Future<TRList, TRError> { promise in
-            if token == "token" || key == "key" {
-                return promise(.failure(.noTokenOrAPIKey))
-            }
-            
-            (get(url: "https://api.trello.com/1/list/\(id)?key=\(key)&token=\(token)") as AnyPublisher<TRList, TRError>)
-                .catch { err -> Empty<TRList, Never> in
-                    promise(.failure(.unknownError(err)))
-                    return .init()
+    
+    public static func getCards(listId id: String) -> AnyPublisher<[TRCard], TRError> {
+        checkToken(get(TrelloAPI.Cards.get(listId: id)))
+    }
+    
+    private static func get<T: Decodable>(_ url: URL?) -> AnyPublisher<T, TRError> {
+        guard let url = url else {
+            return Fail(error: .unableToConstructURL).eraseToAnyPublisher()
+        }
+        return URLSession.shared.dataTaskPublisher(for: url)
+            .tryMap { (data, response) -> Data in
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    throw TRError.noResponse
                 }
-                .sink { promise(.success($0)) }
-                .store(in: &subscriptions)
+                guard 200...299 ~= httpResponse.statusCode else {
+                    throw TRError.wrongResponse(httpResponse)
+                }
+                return data
+            }
+            .decode(type: T.self, decoder: JSONDecoder())
+            .catch { Fail(error: .unknownError($0)) }
+            .eraseToAnyPublisher()
+    }
+    
+    public static func getBoard(id: String) -> AnyPublisher<TRBoard, TRError> {
+        checkToken(get(TrelloAPI.Board.get(id: id)))
+    }
+    
+    public static func getList(id: String) -> AnyPublisher<TRList, TRError> {
+        checkToken(get(TrelloAPI.List.get(id: id)))
+    }
+    
+    private static func checkToken<T>(_ publisher: AnyPublisher<T, TRError>) -> AnyPublisher<T, TRError> {
+        if token.isEmpty || key.isEmpty {
+            return Fail(error: .noTokenOrAPIKey).eraseToAnyPublisher()
+        } else {
+            return publisher
         }
     }
 }
@@ -136,11 +63,11 @@ public struct TRBoard: Hashable, Codable {
     public var starred: Bool
     
     @inlinable
-    public func getCards() -> Future<[TRCard], TRError> {
+    public func getCards() -> AnyPublisher<[TRCard], TRError> {
         Trellio.getCards(boardId: id)
     }
     @inlinable
-    public func getLists() -> Future<[TRList], TRError> {
+    public func getLists() -> AnyPublisher<[TRList], TRError> {
         Trellio.getLists(boardId: id)
     }
 }
@@ -152,12 +79,12 @@ public struct TRList: Hashable, Codable {
     public var closed: Bool
     
     @inlinable
-    public func getCards() -> Future<[TRCard], TRError> {
+    public func getCards() -> AnyPublisher<[TRCard], TRError> {
         Trellio.getCards(listId: id)
     }
     
     @inlinable
-    public func getBoard() -> Future<TRBoard, TRError> {
+    public func getBoard() -> AnyPublisher<TRBoard, TRError> {
         Trellio.getBoard(id: idBoard)
     }
 }
@@ -171,11 +98,11 @@ public struct TRCard: Hashable, Codable {
     public var idList: String
 
     @inlinable
-    public func getBoard() -> Future<TRBoard, TRError> {
+    public func getBoard() -> AnyPublisher<TRBoard, TRError> {
         Trellio.getBoard(id: idBoard)
     }
     @inlinable
-    public func getList() -> Future<TRList, TRError> {
+    public func getList() -> AnyPublisher<TRList, TRError> {
         Trellio.getList(id: idList)
     }
 }
@@ -183,6 +110,50 @@ public struct TRCard: Hashable, Codable {
 public enum TRError: Error {
     case noTokenOrAPIKey,
          unableToConstructURL,
-         wrongResponse,
+         noResponse,
+         wrongResponse(HTTPURLResponse),
          unknownError(Error)
+}
+
+
+public enum TrelloAPI {
+    public static let hostname = URL(string: "https://api.trello.com/1/")
+    public enum Board {
+        @inlinable
+        public static func get(id: String) -> URL! {
+            URL(string: "boards/\(id)?key=\(Trellio.key)&token=\(Trellio.token)", relativeTo: hostname)?.absoluteURL
+        }
+    }
+    public enum Boards {
+       @inlinable
+        public static func get() -> URL! {
+            URL(string: "members/me/boards?key=\(Trellio.key)&token=\(Trellio.token)", relativeTo: hostname)?.absoluteURL
+        }
+    }
+    
+    public enum List {
+        @inlinable
+        public static func get(id: String) -> URL! {
+            URL(string: "list/\(id)?key=\(Trellio.key)&token=\(Trellio.token)", relativeTo: hostname)?.absoluteURL
+        }
+    }
+    public enum Lists {
+        @inlinable
+        public static func get(boardId id: String) -> URL! {
+            URL(string: "boards/\(id)/lists?key=\(Trellio.key)&token=\(Trellio.token)", relativeTo: hostname)?.absoluteURL
+        }
+    }
+    
+    public enum Cards {
+        @inlinable
+        public static func get(boardId id: String) -> URL! {
+            URL(string: "boards/\(id)/cards?key=\(Trellio.key)&token=\(Trellio.token)", relativeTo: hostname)?.absoluteURL
+        }
+        @inlinable
+        public static func get(listId id: String) -> URL! {
+            URL(string: "lists/\(id)/cards?key=\(Trellio.key)&token=\(Trellio.token)", relativeTo: hostname)?.absoluteURL
+        }
+    }
+    
+    
 }
