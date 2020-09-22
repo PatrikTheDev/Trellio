@@ -14,7 +14,7 @@ public final class TRUIListCell: UICollectionViewListCell, PTDListCell {
     }
 }
 
-public final class TRUIListsController: PTDListController<TRUIListCell> {
+public class TRUIListsController: PTDListController<TRUIListCell> {
     
     private var subscriptions = Set<AnyCancellable>()
     
